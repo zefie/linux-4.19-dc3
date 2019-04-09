@@ -1147,7 +1147,7 @@ static int do_read_capacity(struct fsg_common *common, struct fsg_buffhd *bh)
 	}
 
 
-	printk ("readcap:% ld \ n", curlun-> num_sectors-1);
+	printk ("readcap: %ld\n", curlun-> num_sectors-1);
 	put_unaligned_be32(curlun->num_sectors - 1, &buf[0]);
 						/* Max logical block */
 	put_unaligned_be32(curlun->blksize, &buf[4]);/* Block length */
