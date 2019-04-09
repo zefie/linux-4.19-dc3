@@ -1146,6 +1146,8 @@ static int do_read_capacity(struct fsg_common *common, struct fsg_buffhd *bh)
 		return -EINVAL;
 	}
 
+
+	printk ("readcap:% ld \ n", curlun-> num_sectors-1);
 	put_unaligned_be32(curlun->num_sectors - 1, &buf[0]);
 						/* Max logical block */
 	put_unaligned_be32(curlun->blksize, &buf[4]);/* Block length */
@@ -1176,59 +1178,62 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
 
 static int do_read_disc_information(struct fsg_common* common, struct fsg_buffhd * bh)
 {
- struct fsg_lun *curlun = common->curlun;
- if (common->cmnd[1] & ~0x02) {  /* Mask away MSF */
-  curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-  return -EINVAL;
- }
- u8* outbuf = (u8*)bh->buf;
- memset(outbuf,0,34);
- outbuf[1] = 32;
- outbuf[2] = 0xe; /* last session complete, disc finalized */
- outbuf[3] = 1;   /* first track on disc */
- outbuf[4] = 1;   /* # of sessions */
- outbuf[5] = 1;   /* first track of last session */
- outbuf[6] = 1;   /* last track of last session */
- outbuf[7] = 0x20; /* unrestricted use */
- outbuf[8] = 0x00; /* CD-ROM or DVD-ROM */
- return 34;
+	struct fsg_lun *curlun = common->curlun;
+	if (common->cmnd[1] & ~0x02) {  /* Mask away MSF */
+		curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
+		return -EINVAL;
+	}
+	u8* outbuf = (u8*)bh->buf;
+	memset(outbuf,0,34);
+	outbuf[1] = 32;
+	outbuf[2] = 0xe; /* last session complete, disc finalized */
+	outbuf[3] = 1;   /* first track on disc */
+	outbuf[4] = 1;   /* # of sessions */
+	outbuf[5] = 1;   /* first track of last session */
+	outbuf[6] = 1;   /* last track of last session */
+	outbuf[7] = 0x20; /* unrestricted use */
+	outbuf[8] = 0x00; /* CD-ROM or DVD-ROM */
+	return 34;
 }
 
 static int do_get_configuration(struct fsg_common *common, struct fsg_buffhd *bh)
 {
- struct fsg_lun *curlun = common->curlun;
- if (common->cmnd[1] & ~0x02) {  /* Mask away MSF */
-  curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-  return -EINVAL;
- }
- u8* buf = (u8*)bh->buf;
- int cur;
- if ( curlun->num_sectors > CD_MAX_SECTORS )
- {
-  printk("Is dvd\n");
-  cur = MMC_PROFILE_DVD_ROM;
- }
- else
-  cur = MMC_PROFILE_CD_ROM;
- memset(buf,0,40);
- put_unaligned_be32(36,&buf[0]);
- put_unaligned_be16(cur,&buf[6]);
- buf[10] = 0x03;
- buf[11] = 8;
- put_unaligned_be16(MMC_PROFILE_DVD_ROM,&buf[12]);
- buf[14] = ( cur == MMC_PROFILE_DVD_ROM );
- put_unaligned_be16(MMC_PROFILE_CD_ROM,&buf[16]);
- buf[18] = ( cur == MMC_PROFILE_CD_ROM );
- put_unaligned_be16(1,&buf[20]);
- buf[22] = 0x08 | 0x03;
- buf[23] = 8;
- put_unaligned_be32(1,&buf[24]);
- buf[28] = 1;
- put_unaligned_be16(3,&buf[32]);
- buf[34] = 0x08 | 0x3;
- buf[35] = 4;
- buf[36] = 0x39;
- return 40;
+	struct fsg_lun *curlun = common->curlun;
+	if (common->cmnd[1] & ~0x02) {  /* Mask away MSF */
+		curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
+		return -EINVAL;
+	}
+	u8* buf = (u8*)bh->buf;
+	int cur;
+	if ( curlun->num_sectors > CD_MAX_SECTORS )
+	{
+		printk("DVD Image Detected\n");
+		cur = MMC_PROFILE_DVD_ROM;
+	}
+	else {
+		printk("CD Image Detected\n");
+		cur = MMC_PROFILE_CD_ROM;
+	}
+
+	memset(buf,0,40);
+	put_unaligned_be32(36,&buf[0]);
+	put_unaligned_be16(cur,&buf[6]);
+	buf[10] = 0x03;
+	buf[11] = 8;
+	put_unaligned_be16(MMC_PROFILE_DVD_ROM,&buf[12]);
+	buf[14] = ( cur == MMC_PROFILE_DVD_ROM );
+	put_unaligned_be16(MMC_PROFILE_CD_ROM,&buf[16]);
+	buf[18] = ( cur == MMC_PROFILE_CD_ROM );
+	put_unaligned_be16(1,&buf[20]);
+	buf[22] = 0x08 | 0x03;
+	buf[23] = 8;
+	put_unaligned_be32(1,&buf[24]);
+	buf[28] = 1;
+	put_unaligned_be16(3,&buf[32]);
+	buf[34] = 0x08 | 0x3;
+	buf[35] = 4;
+	buf[36] = 0x39;
+	return 40;
 }
 
 static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
@@ -1721,7 +1726,6 @@ static int check_command(struct fsg_common *common, int cmnd_size,
 	VDBG(common, "SCSI command: %s;  Dc=%d, D%c=%u;  Hc=%d%s\n",
 	     name, cmnd_size, dirletter[(int) data_dir],
 	     common->data_size_from_cmnd, common->cmnd_size, hdlen);
-
 	/*
 	 * We can't reply at all until we know the correct data direction
 	 * and size.
