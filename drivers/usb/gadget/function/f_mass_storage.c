@@ -2086,7 +2086,6 @@ static int do_scsi_command(struct fsg_common *common)
 		 common->data_size_from_cmnd = 0;
 		 if (!common->curlun || !common->curlun->cdrom)
 			goto unknown_cmnd;
-		 printk("READ_DISC_INFORMATION\n");
 		 reply = do_read_disc_information(common,bh);
 		 break;
 
@@ -2094,7 +2093,6 @@ static int do_scsi_command(struct fsg_common *common)
 		 common->data_size_from_cmnd = 0;
 		 if (!common->curlun || !common->curlun->cdrom)
 			goto unknown_cmnd;
-		 printk("GET_CONFIGURATION\n");
 		 reply = do_get_configuration(common,bh);
 		 break;
 
