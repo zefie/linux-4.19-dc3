@@ -1,0 +1,18 @@
+Features:
+- Started as generic armbian 4.19 "linux-source-4.19" package
+- Patched for DVD-ROM Mass Storage Support
+- Kernel updated from 4.19.28 to 4.19.30
+- DTB decompiled and 1.1GHz Overclock applied: arch/arm/boot/dts/sun5i-a13-dreamcatcher.dts
+- New defconfig: dreamcatcher3_zefie_defconfig  (arch/arm/configs/dreamcatcher3_zefie_defconfig)
+- ads7846_device re-injected (todo: dts proper)
+- tinydrm enabled (unusable until ili9341 spi lcd done in dts proper)
+
+
+Known Issues:
+- Only tested with make-kpkg (kernel-package from Debian stretch-backports)
+  (use ./scripts/zefkpkg.sh)
+- DTS isn't actually compiled (you can manually compile it with:
+  dtc -I dts -O dtb -o sun5i-a13-dreamcatcher.dtb sun5i-a13-dreamcatcher.dts
+- Do not uninstall "linux-dtb-next-sunxi" package, as it has the dtbs
+- Kernel does not update automatically, you must manually point the
+  /boot/zImage and /boot/uInitrd symlinks to the new files
