@@ -75,13 +75,47 @@
 	};
 };
 
+
+&be0 {
+        status = "okay";
+};
+
+&cpu0 {
+	// remove first row of numbers to disable overclock
+	operating-points = <
+		/* kHz    uV */
+		1104000 1400000
+		1008000 1400000
+		9120000 1350000
+		 864000 1300000
+		 624000 1200000
+		 576000 1200000
+		 432000 1200000
+	>;
+};
+
+&codec {
+        status = "okay";
+};
+
+&ehci0 {
+        status = "okay";
+};
+
+&fe0 {
+        status = "okay";
+};
+
 &i2c0 {
         pinctrl-names = "default";
         pinctrl-0 = <&i2c0_pins_a>;
         status = "okay";
         axp209: pmic@34 {
-                reg = <0x34>;
+		compatible = "x-powers,axp209";
+		#interrupt-cells = <1>;
+		interrupt-controller;
                 interrupts = <0>;
+                reg = <0x34>;
         };
 };
 
@@ -97,135 +131,8 @@
         status = "okay";
 };
 
-&reg_usb0_vbus {
-        gpio = <&pio 3 15 GPIO_ACTIVE_HIGH>;
-        status = "okay";
-};
-
-&reg_usb1_vbus {
-        gpio = <&pio 3 26 GPIO_ACTIVE_HIGH>;
-        status = "okay";
-};
-
-
-&codec {
-	status = "okay";
-};
-
-&fe0 {
-        status = "okay";
-};
-
-&be0 {
-        status = "okay";
-};
-
-&tcon0 {
-	status = "okay";
-};
-
 &lradc {
-	status = "disabled";
-};
-
-&pwm {
-        pinctrl-names = "default";
-        pinctrl-0 = <&pwm0_pins>;
         status = "disabled";
-};
-
-&cpu0 {
-	// remove first row of numbers to disable overclock
-	operating-points = <	
-		/* kHz    uV */
-		1104000 1400000
-		1008000 1400000
-		9120000 1350000
-		 864000 1300000
-		 624000 1200000
-		 576000 1200000
-		 432000 1200000
-	>;
-};
-
-&uart0 {
-        status = "okay";
-};
-
-&usb_otg {
-        dr_mode = "otg";
-        status = "okay";
-};
-
-&spi0 {
-        pinctrl-names = "default";
-	pinctrl-0 = <&spi0_pins_a>,
-		    <&spi0_cs0_pin_a>;
-        status = "okay";
-
-	touchscreen@0 {
-		compatible = "ti,ads7846";
-		reg = <0>;
-		spi-max-frequency = <2000000>;
-		interrupt-parent = <&pio>;
-		interrupts = <1 10 2>; /* IRQ_TYPE_EDGE_FALLING */
-		pendown-gpio = <&pio 1 10 GPIO_ACTIVE_HIGH>;
-		ti,x-plate-ohms = /bits/ 16 <100>;
-		ti,pressure-max = /bits/ 16 <255>;
-	};
-};
-
-&spi1 {
-        pinctrl-names = "default";
-	pinctrl-0 = <&spi1_pins_a>,
-		    <&spi1_cs0_pin_a>;
-	status = "okay";
-	panel: display@0{
-	/*
-		// tinydrm mode
-		compatible = "mi,mi0283qt";
-		rotation = <180>;
-		reset-gpios = <&pio 3 21 GPIO_ACTIVE_HIGH>;
-		dc-gpios = <&pio 3 7 GPIO_ACTIVE_HIGH>;
-	*/
-
-		// fbtft mode
-		compatible = "ilitek,ili9341";
-		rotate = <270>;
-		reset-gpios = <&pio 3 21 GPIO_ACTIVE_LOW>;
-		dc-gpios = <&pio 3 7 GPIO_ACTIVE_LOW>;
-
-		// common
-		reg = <0>;
-		spi-max-frequency = <48000000>;
-		bgr;
-		buswidth = <8>;
-		backlight = <&backlight>;
-		debug = <3>;
-		width-mm = <49>;
-                height-mm = <38>;
-	
-		port {
-			panel_input: endpoint {
-				remote-endpoint = <&tcon0_out_lcd>;
-			};
-		};
-
-	};
-};
-
-&spi2 {
-        pinctrl-names = "default";
-	pinctrl-0 = <&spi2_pins_a>,
-		    <&spi2_cs0_pin_a>;
-	status = "okay";
-};
-
-&tcon0_out {
-        tcon0_out_lcd: endpoint@0 {
-                reg = <0>;
-                remote-endpoint = <&panel_input>;
-        };
 };
 
 &mmc0 {
@@ -261,12 +168,12 @@
 };
 
 &pio {
-	ahci_pwr_pin@0 {
+	ahci_power_button: ahci_pwr_pin@0 {
 		pins = "PB8";
 		function = "gpio_out";
 	};
 
-	led_pins_dreamcatcher: led_pins@0 {
+	led_pins_a: led_pins@0 {
 		drive-strengh =  <1>;
 		pins = "PD2", "PD3", "PD4", "PD5", "PD6", "PD7", "PD10", "PD11", "PD12", "PD13", "PD14", "PD21", "PD22";
 		function = "gpio_out";
@@ -342,37 +249,124 @@
 	};
 };
 
+&pwm {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pwm0_pins>;
+        status = "disabled";
+};
+
+&reg_ahci_5v {
+        gpio = <&pio 1 8 GPIO_ACTIVE_HIGH>;
+        pinctrl-0 = &ahci_power_button;
+        pinctrl-names = "default";
+};
+
+&reg_usb0_vbus {
+        gpio = <&pio 3 15 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+};
+
+&reg_usb1_vbus {
+        gpio = <&pio 3 26 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+};
+
+&spi0 {
+        pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins_a>,
+		    <&spi0_cs0_pin_a>;
+        status = "okay";
+
+	touchscreen@0 {
+		compatible = "ti,ads7846";
+		reg = <0>;
+		spi-max-frequency = <2000000>;
+		interrupt-parent = <&pio>;
+		interrupts = <1 10 2>; /* IRQ_TYPE_EDGE_FALLING */
+		pendown-gpio = <&pio 1 10 GPIO_ACTIVE_HIGH>;
+		ti,x-plate-ohms = /bits/ 16 <100>;
+		ti,pressure-max = /bits/ 16 <255>;
+	};
+};
+
+&spi1 {
+        pinctrl-names = "default";
+	pinctrl-0 = <&spi1_pins_a>,
+		    <&spi1_cs0_pin_a>;
+	status = "okay";
+	panel: display@0{
+	/*
+		// tinydrm mode
+		compatible = "mi,mi0283qt";
+		rotation = <180>;
+		reset-gpios = <&pio 3 21 GPIO_ACTIVE_HIGH>;
+		dc-gpios = <&pio 3 7 GPIO_ACTIVE_HIGH>;
+	*/
+
+		// fbtft mode
+		compatible = "ilitek,ili9341";
+		rotate = <270>;
+		reset-gpios = <&pio 3 21 GPIO_ACTIVE_LOW>;
+		dc-gpios = <&pio 3 7 GPIO_ACTIVE_LOW>;
+
+		// common
+		reg = <0>;
+		spi-max-frequency = <48000000>;
+		bgr;
+		buswidth = <8>;
+		backlight = <&backlight>;
+		debug = <3>;
+		width-mm = <49>;
+                height-mm = <38>;
+
+		port {
+			panel_input: endpoint {
+				remote-endpoint = <&tcon0_out_lcd>;
+			};
+		};
+
+	};
+};
+
+&spi2 {
+        pinctrl-names = "default";
+	pinctrl-0 = <&spi2_pins_a>,
+		    <&spi2_cs0_pin_a>;
+	status = "okay";
+};
+
+&tcon0 {
+	status = "okay";
+};
+
+&tcon0_out {
+        tcon0_out_lcd: endpoint@0 {
+                reg = <0>;
+                remote-endpoint = <&panel_input>;
+        };
+};
+
+&uart0 {
+        status = "okay";
+};
+
 &uart1 {
         pinctrl-names = "default";
         pinctrl-0 = <&uart1_pins_b>;
         status = "okay";
 };
 
-
 &usb_otg {
         dr_mode = "otg";
         status = "okay";
 };
-
 
 &usbphy {
         pinctrl-names = "default";
         pinctrl-0 = <&usb0_id_detect_pin>, <&usb0_vbus_detect_pin>;
         usb0_id_det-gpio = <&pio 6 2 GPIO_ACTIVE_HIGH>; /* PG2 */
         usb0_vbus_det-gpio = <&pio 6 1 GPIO_ACTIVE_HIGH>; /* PG1 */
-
         usb0_vbus-supply = <&reg_usb0_vbus>;
         usb1_vbus-supply = <&reg_usb1_vbus>;
         status = "okay";
-};
-
-&ehci0 {
-        status = "okay";
-};
-
-
-&axp209 {
-	#interrupt-cells = <1>;
-	compatible = "x-powers,axp209";
-	interrupt-controller;
 };
