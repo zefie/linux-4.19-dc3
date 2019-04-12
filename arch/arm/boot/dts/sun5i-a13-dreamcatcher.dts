@@ -93,45 +93,10 @@
         status = "okay";
 };
 
-#include "axp209.dtsi"
-
-&ac_power_supply {
+&i2c2 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c2_pins_a>;
         status = "okay";
-};
-
-&battery_power_supply {
-        status = "okay";
-};
-
-&reg_dcdc2 {
-        regulator-always-on;
-        regulator-min-microvolt = <1000000>;
-        regulator-max-microvolt = <1500000>;
-        regulator-name = "vdd-cpu";
-};
-
-&reg_dcdc3 {
-        regulator-always-on;
-        regulator-min-microvolt = <1000000>;
-        regulator-max-microvolt = <1400000>;
-        regulator-name = "vdd-int-pll";
-};
-
-&reg_ldo1 {
-        regulator-name = "vdd-rtc";
-};
-
-&reg_ldo2 {
-        regulator-always-on;
-        regulator-min-microvolt = <3000000>;
-        regulator-max-microvolt = <3000000>;
-        regulator-name = "avcc";
-};
-
-&reg_ldo3 {
-        regulator-min-microvolt = <3300000>;
-        regulator-max-microvolt = <3300000>;
-        regulator-name = "vcc-wifi";
 };
 
 &reg_usb0_vbus {
@@ -163,11 +128,10 @@
 &pwm {
         pinctrl-names = "default";
         pinctrl-0 = <&pwm0_pins>;
-        status = "okay";
+        status = "disabled";
 };
 
 &cpu0 {
-	cpu-supply = <&reg_dcdc2>;
 	// remove first row of numbers to disable overclock
 	operating-points = <	
 		/* kHz    uV */
@@ -179,10 +143,6 @@
 		 576000 1200000
 		 432000 1200000
 	>;
-};
-
-&ehci0 {
-        status = "okay";
 };
 
 &uart0 {
@@ -298,13 +258,16 @@
 };
 
 &pio {
-	led_pins_dreamcatcher: led_pins@0 {
-		allwinner,drive = <1>;
-		allwinner,function = "gpio_out";
-		allwinner,pins = "PD4", "PD5", "PD6", "PD7", "PD10", "PD11", "PD12", "PD13", "PD14", "PD21", "PD22";
-		allwinner,pull = <0>;
+	ahci_pwr_pin@0 {
+		pins = "PB8";
+		function = "gpio_out";
 	};
 
+	led_pins_dreamcatcher: led_pins@0 {
+		drive-strengh =  <1>;
+		pins = "PD2", "PD3", "PD4", "PD5", "PD6", "PD7", "PD10", "PD11", "PD12", "PD13", "PD14", "PD21", "PD22";
+		function = "gpio_out";
+	};
 
         mmc0_cd_pin: mmc0_cd_pin@0 {
                 pins = "PG0";
@@ -313,60 +276,45 @@
         };
 
 	spi0_cs0_pin_a: spi0-cs0@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "spi0";
-		allwinner,pins = "PC3";
-		allwinner,pull = <0>;
+		pins = "PC3";
+		function = "spi0";
 	};
 
 	spi0_pins_a: spi0@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "spi0";
-		allwinner,pins = "PC2", "PC0", "PC1";
-		allwinner,pull = <0>;
+		pins = "PC2", "PC0", "PC1";
+		function = "spi0";
 	};
 
-
 	spi1_cs0_pin_a: spi1-cs0@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "spi1";
-		allwinner,pins = "PG9";
-		allwinner,pull = <0>;
+		pins = "PG9";
+		function = "spi1";
 	};
 
 	spi1_pins_a: spi1@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "spi1";
-		allwinner,pins = "PG10", "PG11", "PG12";
-		allwinner,pull = <0>;
+		pins = "PG10", "PG11", "PG12";
+		function = "spi1";
 	};
 
 	spi2_cs0_pin_a: spi2-cs0@0 {
-		allwinner,drive = <00>;
-		allwinner,function = "spi2";
-		allwinner,pins = "PE0";
-		allwinner,pull = <0>;
+		pins = "PE0";
+		function = "spi2";
 	};
 
 	spi2_pins_a: spi2@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "spi2";
-		allwinner,pins = "PE1", "PE2", "PE3";
-		allwinner,pull = <0>;
+		pins = "PE1", "PE2", "PE3";
+		function = "spi2";
 	};
 
 	mmc2_pins: mmc2@0 {
-		allwinner,drive = <2>;
-		allwinner,function = "mmc2";
-		allwinner,pins = "PC6", "PC7", "PC8", "PC9", "PC10", "PC11";
-		allwinner,pull = <0>;
+		drive-strength = <2>;
+		pins = "PC6", "PC7", "PC8", "PC9", "PC10", "PC11";
+		function = "mmc2";
 	};
 
 	mmc2_cd_pin_a: mmc2_cd_pin@0 {
-		allwinner,drive = <0>;
-		allwinner,function = "gpio_in";
-		allwinner,pins = "PC12";
-		allwinner,pull = <1>;
+		pins = "PC12";
+		function = "gpio_in";
+                bias-pull-down;
 	};
 
         usb0_vbus_detect_pin: usb0_vbus_detect_pin@0 {
@@ -381,10 +329,20 @@
                 bias-pull-up;
         };
 
-        usb0_vbus_pin_a: usb0_vbus_pin@0 {
-                pins = "PG12";
+	usb0_vbus_pin_a: usb0_vbus_pin@0 {
+		pins = "PG15";
+		function = "gpio_out";
+	};
+
+        usb1_vbus_pin_a: usb1_vbus_pin@0 {
+                pins = "PG26";
                 function = "gpio_out";
         };
+
+	usb2_vbus_pin@0 {
+		pins = "PH3";
+		function = "gpio_out";
+	};
 };
 
 &uart1 {
@@ -393,23 +351,31 @@
         status = "okay";
 };
 
+
+
 &usb_otg {
         dr_mode = "otg";
         status = "okay";
 };
 
-&usb_power_supply {
-        status = "okay";
-};
 
 &usbphy {
         pinctrl-names = "default";
         pinctrl-0 = <&usb0_id_detect_pin>, <&usb0_vbus_detect_pin>;
         usb0_id_det-gpio = <&pio 6 2 GPIO_ACTIVE_HIGH>; /* PG2 */
         usb0_vbus_det-gpio = <&pio 6 1 GPIO_ACTIVE_HIGH>; /* PG1 */
-        usb0_vbus_power-supply = <&usb_power_supply>;
         usb0_vbus-supply = <&reg_usb0_vbus>;
-        usb1_vbus-supply = <&reg_ldo3>;
+        usb1_vbus-supply = <&reg_usb1_vbus>;
         status = "okay";
 };
 
+&ehci0 {
+        status = "okay";
+};
+
+
+&axp209 {
+	#interrupt-cells = <1>;
+	compatible = "x-powers,axp209";
+	interrupt-controller;
+};
