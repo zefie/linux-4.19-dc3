@@ -8,8 +8,6 @@
 #include "sun5i-a13.dtsi"
 #include "sunxi-common-regulators.dtsi"
 
-/* #include "sun5i-reference-design-tablet.dtsi" */
-
 / {
 
 	model = "Othernet A13-Dreamcatcher";
@@ -100,7 +98,12 @@
 };
 
 &reg_usb0_vbus {
-        gpio = <&pio 6 12 GPIO_ACTIVE_HIGH>; /* PG12 */
+        gpio = <&pio 3 15 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+};
+
+&reg_usb1_vbus {
+        gpio = <&pio 3 26 GPIO_ACTIVE_HIGH>;
         status = "okay";
 };
 
@@ -227,7 +230,7 @@
 
 &mmc0 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin>;
+	pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin_a>;
 	vmmc-supply = <&reg_vcc3v0>;
 	bus-width = <4>;
 	cd-gpios = <&pio 6 0 GPIO_ACTIVE_LOW>; /* PG0 */
@@ -240,7 +243,7 @@
 
 &mmc2 {
         pinctrl-names = "default";
-	pinctrl-0 = <&mmc2_pins>;
+	pinctrl-0 = <&mmc2_4bit_pins_a>, <&mmc2_cd_pin_a>;
 	vmmc-supply = <&reg_vcc3v0>;
 	bus-width = <4>;
 	cd-gpios = <&pio 2 12 GPIO_ACTIVE_LOW>;
@@ -269,11 +272,17 @@
 		function = "gpio_out";
 	};
 
-        mmc0_cd_pin: mmc0_cd_pin@0 {
+        mmc0_cd_pin_a: mmc0_cd_pin@0 {
                 pins = "PG0";
                 function = "gpio_in";
                 bias-pull-up;
         };
+
+	mmc2_cd_pin_a: mmc2_cd_pin@0 {
+		pins = "PC12";
+		function = "gpio_in";
+                bias-pull-down;
+	};
 
 	spi0_cs0_pin_a: spi0-cs0@0 {
 		pins = "PC3";
@@ -305,18 +314,6 @@
 		function = "spi2";
 	};
 
-	mmc2_pins: mmc2@0 {
-		drive-strength = <2>;
-		pins = "PC6", "PC7", "PC8", "PC9", "PC10", "PC11";
-		function = "mmc2";
-	};
-
-	mmc2_cd_pin_a: mmc2_cd_pin@0 {
-		pins = "PC12";
-		function = "gpio_in";
-                bias-pull-down;
-	};
-
         usb0_vbus_detect_pin: usb0_vbus_detect_pin@0 {
                 pins = "PG1";
                 function = "gpio_in";
@@ -339,7 +336,7 @@
                 function = "gpio_out";
         };
 
-	usb2_vbus_pin@0 {
+	usb2_vbus_pin_a: usb2_vbus_pin@0 {
 		pins = "PH3";
 		function = "gpio_out";
 	};
@@ -350,7 +347,6 @@
         pinctrl-0 = <&uart1_pins_b>;
         status = "okay";
 };
-
 
 
 &usb_otg {
@@ -364,6 +360,7 @@
         pinctrl-0 = <&usb0_id_detect_pin>, <&usb0_vbus_detect_pin>;
         usb0_id_det-gpio = <&pio 6 2 GPIO_ACTIVE_HIGH>; /* PG2 */
         usb0_vbus_det-gpio = <&pio 6 1 GPIO_ACTIVE_HIGH>; /* PG1 */
+
         usb0_vbus-supply = <&reg_usb0_vbus>;
         usb1_vbus-supply = <&reg_usb1_vbus>;
         status = "okay";
