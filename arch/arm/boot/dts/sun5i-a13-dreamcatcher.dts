@@ -2,19 +2,23 @@
 
 /dts-v1/;
 
+/* base */
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include "sun5i-a13.dtsi"
 #include "sunxi-common-regulators.dtsi"
 
+/* custom additions */
+
 / {
 
 	model = "Othernet A13-Dreamcatcher";
 	compatible = "othernet,a13-dreamcatcher", "allwinner,sun5i-a13";
 
+
         aliases {
-                serial0 = &uart0;
+                serial0 = &uart1;
         };
 
 	backlight: backlight {
@@ -22,8 +26,17 @@
 		gpios = <&pio 3 23 GPIO_ACTIVE_HIGH>;
 	};
 
+	chosen {
+		stdout-path = "serial0:115200n8";
+		framebuffer@0 {
+			status = "okay";
+		};
+	};
+
 	leds {
 		compatible = "gpio-leds";
+		pinctrl-0 = <&led_pins_a>;
+		pinctrl-names = "default";
 
 		heartbeat {
 			gpios = <&pio 3 12 GPIO_ACTIVE_HIGH>;
@@ -46,35 +59,62 @@
                 };
 	};
 
-	chosen {
-		stdout-path = "serial0:115200n8";
-		framebuffer@0 {
-			status = "okay";
-		};
-
-                mali: gpu@1c40000 {
-                        compatible = "allwinner,sun4i-a10-mali", "arm,mali-400";
-                        reg = <0x01c40000 0x10000>;
-                        interrupts = <69>,
-                                     <70>,
-                                     <71>,
-                                     <72>,
-                                     <73>;
-                        interrupt-names = "gp",
-                                          "gpmmu",
-                                          "pp0",
-                                          "ppmmu0",
-                                          "pmu";
-                        clocks = <&ccu CLK_AHB_GPU>, <&ccu CLK_GPU>;
-                        clock-names = "bus", "core";
-                        resets = <&ccu RST_GPU>;
-
-                        assigned-clocks = <&ccu CLK_GPU>;
-                        assigned-clock-rates = <384000000>;
-                };
+	mali: gpu@1c40000 {
+		compatible = "allwinner,sun4i-a10-mali", "arm,mali-400";
+		reg = <0x01c40000 0x10000>;
+		interrupts =	<69>,
+				<70>,
+				<71>,
+				<72>,
+				<73>;
+		interrupt-names =	"gp",
+					"gpmmu",
+					"pp0",
+					"ppmmu0",
+					"pmu";
+		clocks = <&ccu CLK_AHB_GPU>, <&ccu CLK_GPU>;
+		clock-names = "bus", "core";
+		resets = <&ccu RST_GPU>;
+		assigned-clocks = <&ccu CLK_GPU>;
+		assigned-clock-rates = <384000000>;
 	};
+
 };
 
+/* custom removals */
+
+&{/soc@1c00000} {
+	/delete-node/ ethernet@1c0b000;
+	/delete-node/ ir@1c21800;
+	/delete-node/ lradc@1c22800;
+	/delete-node/ mdio@1c0b080;
+	/delete-node/ nand@1c03000;
+	/delete-node/ serial@1c28000;
+	/delete-node/ serial@1c28800;
+	/delete-node/ tv-encoder@1c0a000;
+};
+
+&{/soc@1c00000/lcd-controller@1c0c000/ports/port@1} {
+	/delete-node/ endpoint@1;
+};
+
+&{/chosen} {
+	/delete-node/ framebuffer@1;
+};
+
+&pio {
+	/delete-node/ emac0@0;
+	/delete-node/ ir0@0;
+	/delete-node/ nand-base0@0;
+	/delete-node/ nand-cs@0;
+	/delete-node/ nand-rb@0;
+	/delete-node/ uart2@0;
+	/delete-node/ uart2-cts-rts@0;
+	/delete-node/ uart3@0;
+	/delete-node/ uart3-cts-rts@0;	
+};
+
+/* custom modifications */
 
 &be0 {
         status = "okay";
@@ -82,6 +122,8 @@
 
 &cpu0 {
 	// remove first row of numbers to disable overclock
+	cooling-max-level = <0x5>;
+	cooling-min-level = <0x0>;
 	operating-points = <
 		/* kHz    uV */
 		1104000 1400000
@@ -131,10 +173,6 @@
         status = "okay";
 };
 
-&lradc {
-        status = "disabled";
-};
-
 &mmc0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin_a>;
@@ -161,6 +199,10 @@
 		reg = <0>;
 	};
 
+};
+
+&ohci0 {
+	status = "okay";
 };
 
 &otg_sram {
@@ -277,7 +319,7 @@
 		    <&spi0_cs0_pin_a>;
         status = "okay";
 
-	touchscreen@0 {
+	ads7846@0 {
 		compatible = "ti,ads7846";
 		reg = <0>;
 		spi-max-frequency = <2000000>;
@@ -344,10 +386,6 @@
                 reg = <0>;
                 remote-endpoint = <&panel_input>;
         };
-};
-
-&uart0 {
-        status = "okay";
 };
 
 &uart1 {
