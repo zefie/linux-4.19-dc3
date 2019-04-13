@@ -8,6 +8,7 @@ REVISION=1.3
 VERSION="-dc3"
 #CROSS="arm-linux-gnueabihf-"
 CROSS="/home/zefie/dev/ubertc/out/arm-eabi-6.x/bin/arm-eabi-"
+DT="sun5i-a13-dreamcatcher"
 DEFCONFIG="dreamcatcher3_zefie_defconfig"
 
 if [ -z "${1}" ]; then
@@ -20,10 +21,17 @@ if [ -z "${1}" ]; then
 		--append-to-version="${VERSION}" --revision="${REVISION}" \
 		--uImage --us --uc --cross-compile "${CROSS}" \
 		kernel_image kernel_headers
+
+	cp -v "arch/${ARCH}/boot/dts/${DT}.dtb" ..
 else
 	export CROSS_COMPILE="${CROSS}"
 	export LOCAL_VERSION="-dc3"
 	case "${1}" in
+		"clean")
+			rm -rf debian/
+			make mrproper
+			;;
+
 		"savedefconfig")
 			make savedefconfig
 			mv -v defconfig "arch/${ARCH}/configs/${DEFCONFIG}"
